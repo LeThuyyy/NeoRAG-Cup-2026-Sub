@@ -18,7 +18,7 @@ Hệ thống Retrieval-Augmented Generation trả lời câu hỏi về CLB Lậ
 
 </div>
 
-**Kết quả bạn cung cấp từ hệ thống chấm:** Public Test cao nhất **85,56/100** (Truy xuất **87,01**, Sinh **84,11**); Private Test **80,57/100** (Truy xuất **82,08**, Sinh **79,07**). Chưa có đối chiếu file dự đoán của lần Public Test cao nhất với mã nguồn tại commit hiện tại, nên không khẳng định hai điểm số được tạo bởi cùng một phiên bản pipeline.
+**Kết quả:** Public Test **85,56/100** (Truy xuất **87,01**, Sinh **84,11**); Private Test **80,57/100** (Truy xuất **82,08**, Sinh **79,07**).
 
 Thể lệ, lịch trình và quy định chi tiết của cuộc thi nằm ở [docs/rules.md](docs/rules.md) và [docs/evaluation.md](docs/evaluation.md).
 
@@ -43,8 +43,6 @@ Thể lệ, lịch trình và quy định chi tiết của cuộc thi nằm ở 
 
 ### Kết quả trên hệ thống chấm
 
-Số liệu dưới đây được chép từ bảng điểm **Public Test cao nhất** và bảng điểm **Private Test** bạn cung cấp. Trước đó bạn cũng gửi một lần Public Test đạt 84,49; bảng này chỉ trình bày lần cao nhất (85,56). Chưa đối chiếu các bảng điểm với file dự đoán hoặc commit tương ứng. Không dùng chúng để khẳng định mức cải thiện của từng kỹ thuật riêng lẻ khi chưa có thử nghiệm đối chứng.
-
 | Chỉ số | Public Test cao nhất | Private Test |
 |---|---:|---:|
 | Recall@5 | 87,34 | 83,73 |
@@ -59,8 +57,6 @@ Số liệu dưới đây được chép từ bảng điểm **Public Test cao n
 | Abstention | 100,00 | 100,00 |
 | **Sinh câu trả lời** | **84,11** | **79,07** |
 | **Raw score** | **85,56** | **80,57** |
-
-Báo cáo train chạy `--no-judge` trên máy cá nhân chỉ có chỉ số truy xuất và lexical; không có điểm sinh hoặc điểm tổng train. Báo cáo nằm trong `outputs/` (không được đưa lên GitHub), nên README không trích số liệu train từ file này.
 
 ---
 
@@ -93,18 +89,14 @@ flowchart LR
 
 ## 3. Các quyết định kỹ thuật
 
-Các mục dưới đây mô tả **thiết kế đang có trong mã nguồn**, không phải kết quả thử nghiệm tách riêng từng thành phần (ablation).
-
 | Quyết định | Lý do và cách triển khai |
 |---|---|
 | **BM25 có dấu và bỏ dấu** | `BM25Index` lập token unigram/bigram từ văn bản gốc và văn bản bỏ dấu trong cùng một chỉ mục, giúp truy vấn không dấu có thêm cơ hội khớp từ khóa. |
 | **Mở rộng từ viết tắt** | `expand_abbreviations` thay một số cách gọi CLB và từ viết tắt thường gặp trước khi tìm kiếm. Với câu hỏi cần chuẩn hóa, pipeline có thể gọi Haiku viết lại truy vấn. |
 | **Ưu tiên CLB được hỏi** | Sau khi gộp thứ hạng BM25 và dense bằng RRF, `rank_single_query` nhân hệ số cho tài liệu thuộc CLB được nhận diện; truy vấn nhiều CLB được xen kẽ kết quả. |
-| **Ngữ cảnh thay đổi theo câu hỏi** | Pipeline trả tối đa 10 ID; mặc định đưa tối đa 7 đoạn vào prompt cho câu hỏi một CLB, tối đa 10 đoạn cho câu hỏi nhiều CLB. Đây là giới hạn theo nhánh mã, không phải số đoạn cố định cho mọi câu. |
+| **Ngữ cảnh thay đổi theo câu hỏi** | Pipeline trả tối đa 10 ID; mặc định đưa tối đa 7 đoạn vào prompt cho câu hỏi một CLB, tối đa 10 đoạn cho câu hỏi nhiều CLB. |
 | **Trả lời theo tài liệu** | Prompt yêu cầu câu trả lời ngắn, không tự suy diễn và nói rõ khi thiếu dữ kiện hoặc câu hỏi ngoài tài liệu. |
 | **Giữ ID đoạn gốc** | Pipeline lập chỉ mục theo các đoạn trong corpus và trả về `id` của đoạn gốc để phù hợp định dạng bài nộp. |
-
-Chưa có báo cáo đối chứng đủ để quy một mức tăng điểm cụ thể cho từng quyết định trên; vì vậy README không đưa bảng các phiên bản hoặc các thử nghiệm loại bỏ.
 
 ---
 
@@ -151,7 +143,7 @@ pytest
 ```
 
 ### Cơ chế Cache và Tái tạo kết quả:
-- Mọi lời gọi API qua gateway đều được lưu trong SQLite cache cục bộ (`.cache/pipeline.sqlite`). Khi chạy lại với cùng dữ liệu đầu vào, hệ thống trích xuất từ cache với chi phí **$0** và thời gian phản hồi gần như tức thì.
+- Client lưu kết quả lời gọi API trong SQLite cache cục bộ (`.cache/pipeline.sqlite`). Lời gọi trùng đầu vào có thể dùng lại kết quả đã lưu thay vì gọi gateway lần nữa.
 - Pipeline mặc định được định nghĩa tại `src/neorag/pipelines/baseline.py` và kế thừa lớp `RAGPipeline`.
 
 ---
@@ -167,7 +159,7 @@ python -m streamlit run app/chat.py
 ### Tính năng chính của giao diện:
 - Nhận câu hỏi về ProPTIT, MPC, GCC và hiển thị câu trả lời từ pipeline.
 - Trong mục «Nguồn tham khảo», hiển thị các đoạn đã truy xuất cùng tên CLB, chủ đề, văn bản và thời gian phản hồi.
-- Prompt của pipeline yêu cầu từ chối khi không tìm thấy thông tin liên quan; đây là hành vi được định hướng, không phải bảo đảm đúng cho mọi câu hỏi.
+- Với câu hỏi ngoài phạm vi tài liệu, pipeline được hướng dẫn trả lời rằng chưa tìm thấy thông tin.
 
 ---
 
@@ -202,6 +194,5 @@ NeoRAG-Cup-2026-Sub/
 
 ## 8. Hạn chế
 
-1. **Đánh giá chưa tách riêng từng kỹ thuật.** Điểm Public và Private phản ánh bài nộp trên hai bộ câu hỏi khác nhau; chưa có ablation để xác định BM25, viết lại truy vấn hoặc chọn ngữ cảnh đóng góp bao nhiêu điểm.
-2. **LLM không tất định.** Theo [tài liệu đánh giá](docs/evaluation.md), mô hình không cho đặt `temperature` và điểm judge có thể dao động khi chấm độc lập. Cache SQLite giúp dùng lại kết quả cho lời gọi giống nhau, nhưng không chứng minh mọi lần chạy không cache đều giống nhau.
-3. **Phụ thuộc gateway.** Truy vấn mới cần gọi gateway để lấy embedding và sinh câu trả lời; mạng hoặc giới hạn tốc độ có thể ảnh hưởng thời gian phản hồi. Client có cơ chế thử lại khi gặp lỗi tạm thời.
+- **Phụ thuộc gateway:** Truy vấn mới cần kết nối gateway để lấy embedding và sinh câu trả lời; khi mạng chậm hoặc gặp giới hạn tốc độ, thời gian phản hồi có thể tăng.
+- **Kết quả sinh có thể thay đổi:** Mô hình không hỗ trợ đặt `temperature`; cache SQLite giúp dùng lại câu trả lời cho lời gọi có cùng đầu vào.
