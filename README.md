@@ -10,8 +10,7 @@ Hệ thống Retrieval-Augmented Generation trả lời câu hỏi về CLB Lậ
   <img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python 3.10+">
   <img src="https://img.shields.io/badge/LLM-claude--haiku--5--5-orange" alt="LLM">
   <img src="https://img.shields.io/badge/Embedding-bge--m3-blueviolet" alt="Embedding">
-  <img src="https://img.shields.io/badge/Public%20Test-84.49-brightgreen" alt="Public 84.49">
-  <img src="https://img.shields.io/badge/Abstention-100%25-success" alt="Abstention 100%">
+  <img src="https://img.shields.io/badge/Public%20Test-85.56-brightgreen" alt="Public 85.56">
 </p>
 
 **Thí sinh:** Lê Thị Thủy (Team AI – CLB Lập Trình PTIT)  
@@ -19,7 +18,7 @@ Hệ thống Retrieval-Augmented Generation trả lời câu hỏi về CLB Lậ
 
 </div>
 
-**Kết quả:** Public Test đạt **84.49** (Truy xuất **85.80**, Sinh câu trả lời **83.17**). Groundedness **99.15**, Abstention **100.00%**. Độ trễ trung bình ~3.5 giây/câu, tối ưu chi phí token và tuân thủ chặt chẽ quy chế cuộc thi.
+**Kết quả bạn cung cấp từ hệ thống chấm:** Public Test cao nhất **85,56/100** (Truy xuất **87,01**, Sinh **84,11**); Private Test **80,57/100** (Truy xuất **82,08**, Sinh **79,07**). Chưa có đối chiếu file dự đoán của lần Public Test cao nhất với mã nguồn tại commit hiện tại, nên không khẳng định hai điểm số được tạo bởi cùng một phiên bản pipeline.
 
 Thể lệ, lịch trình và quy định chi tiết của cuộc thi nằm ở [docs/rules.md](docs/rules.md) và [docs/evaluation.md](docs/evaluation.md).
 
@@ -42,32 +41,26 @@ Thể lệ, lịch trình và quy định chi tiết của cuộc thi nằm ở 
 
 Điểm tổng kết = 0.5 × Truy xuất (Recall@5, MRR@5, NDCG@5) + 0.5 × Sinh câu trả lời (String Presence, ROUGE-L, Groundedness, Response Relevancy, 1 − Noise Sensitivity, Abstention). Chi tiết công thức: [docs/evaluation.md](docs/evaluation.md).
 
-### Bảng tiến trình cải tiến qua các phiên bản:
+### Kết quả trên hệ thống chấm
 
-| Phiên bản | Thay đổi chính | Train (Tổng) | Truy xuất | Sinh | Public Test |
-|---|---|---:|---:|---:|---:|
-| **Baseline (BTC)** | Dense `bge-m3` top-5, prompt cơ bản | 73.80 | 86.01 | 61.59 | 52.40 |
-| **V1: Hybrid RAG** | Thêm BM25 có dấu + Dense BGE-M3 (RRF) | 78.45 | 86.80 | 70.10 | 74.20 |
-| **V2: Tiền xử lý & Routing** | Chuẩn hóa teencode, mở rộng từ viết tắt, soft club routing | 81.20 | 87.45 | 74.95 | 79.80 |
-| **V3: Dual-Index BM25** | BM25 song song: có dấu + bỏ dấu (`strip_accents`) | 83.10 | 88.12 | 78.08 | 82.15 |
-| **V4 (Chính thức)** | **Dynamic Context (Top 7/10) + Prompt súc tích + Partial Data handling** | **85.60** | **88.38** | **82.82** | **84.49** |
+Số liệu dưới đây được chép từ bảng điểm **Public Test cao nhất** và bảng điểm **Private Test** bạn cung cấp. Trước đó bạn cũng gửi một lần Public Test đạt 84,49; bảng này chỉ trình bày lần cao nhất (85,56). Chưa đối chiếu các bảng điểm với file dự đoán hoặc commit tương ứng. Không dùng chúng để khẳng định mức cải thiện của từng kỹ thuật riêng lẻ khi chưa có thử nghiệm đối chứng.
 
-### Chi tiết điểm số phiên bản chính thức trên Public Test:
+| Chỉ số | Public Test cao nhất | Private Test |
+|---|---:|---:|
+| Recall@5 | 87,34 | 83,73 |
+| MRR@5 | 90,48 | 84,21 |
+| NDCG@5 | 83,21 | 78,30 |
+| **Truy xuất** | **87,01** | **82,08** |
+| String Presence | 90,60 | 81,41 |
+| ROUGE-L | 61,78 | 54,94 |
+| Groundedness | 99,57 | 96,15 |
+| Response Relevancy | 58,27 | 56,83 |
+| 1 − Noise Sensitivity | 94,43 | 85,09 |
+| Abstention | 100,00 | 100,00 |
+| **Sinh câu trả lời** | **84,11** | **79,07** |
+| **Raw score** | **85,56** | **80,57** |
 
-| Metric | Giá trị | Nhận xét |
-|---|---:|---|
-| **Recall@5** | **89.33** | Top-5 bao phủ phần lớn các đoạn văn chứa đáp án |
-| **MRR@5** | **85.91** | Đoạn văn quan trọng nhất nằm ngay ở các vị trí đầu |
-| **NDCG@5** | **82.17** | Phân bổ xếp hạng tài liệu phù hợp theo mức độ liên quan |
-| **Truy xuất (Retrieval)** | **85.80** | **Trung bình cộng 3 chỉ số truy xuất** |
-| **String Presence** | **88.03** | Khớp từ khóa và dữ kiện then chốt của câu trả lời |
-| **ROUGE-L** | **59.74** | Tăng vọt nhờ loại bỏ văn phong rào đón lan man |
-| **Groundedness** | **99.15** | Gần như tuyệt đối, trung thực hoàn toàn với ngữ cảnh được cấp |
-| **Response Relevancy** | **59.46** | Mức điểm phổ biến do đặc thù câu hỏi không dấu của người dùng |
-| **1 − Noise Sensitivity** | **92.65** | Rất ít bị xao nhãng bởi các thông tin ngoài lề trong context |
-| **Abstention** | **100.00** | Nhận diện và từ chối chính xác 100% câu hỏi ngoài phạm vi tri thức |
-| **Sinh câu trả lời (Generation)** | **83.17** | **Trung bình cộng các chỉ số sinh** |
-| **Điểm tổng (Raw Score)** | **84.49** | **Kết quả bài nộp Public Test chính thức** |
+Báo cáo train chạy `--no-judge` trên máy cá nhân chỉ có chỉ số truy xuất và lexical; không có điểm sinh hoặc điểm tổng train. Báo cáo nằm trong `outputs/` (không được đưa lên GitHub), nên README không trích số liệu train từ file này.
 
 ---
 
@@ -75,18 +68,14 @@ Thể lệ, lịch trình và quy định chi tiết của cuộc thi nằm ở 
 
 ```mermaid
 flowchart LR
-    Q([Câu hỏi người dùng]) --> PRE["Tiền xử lý truy vấn<br/>• Mở rộng từ viết tắt / teencode<br/>• Chuẩn hóa chữ không dấu<br/>• Nhận diện thực thể CLB"]
-    
-    PRE --> BM["Dual-Index BM25<br/>(BM25 có dấu + BM25 bỏ dấu)"]
-    PRE --> DE["Dense Embedding<br/>(BGE-M3 metadata f'{club} - {topic}: {text}')"]
-    
-    BM --> RRF["Gộp Reciprocal Rank Fusion (k=20)<br/>+ Soft Club Routing (1.25x CLB đích)"]
+    Q([Câu hỏi]) --> PRE["Mở rộng từ viết tắt; viết lại khi cần"]
+    PRE --> BM["BM25: token có dấu và bỏ dấu"]
+    PRE --> DE["Embedding bge-m3"]
+    BM --> RRF["Gộp thứ hạng RRF, ưu tiên CLB được hỏi"]
     DE --> RRF
-    
-    RRF --> DYN["Dynamic Context Window<br/>• Đơn CLB: chọn Top 7 chống nhiễu<br/>• Đa CLB: chọn Top 10 bảo toàn dữ kiện"]
-    
-    RRF -->|Đủ 10 IDs| OUT1[(retrieved_ids)]
-    DYN -->|Top 7 hoặc 10| GEN["Sinh câu trả lời<br/>Claude Haiku 5.5<br/>Prompt súc tích, xử lý Partial Data"]
+    RRF --> DYN["Chọn ngữ cảnh: tối đa 7 hoặc 10 đoạn"]
+    RRF -->|Tối đa 10 id| OUT1[(retrieved_ids)]
+    DYN --> GEN["Sinh câu trả lời: claude-haiku-5-5"]
     GEN --> OUT2[(answer)]
 ```
 
@@ -94,33 +83,28 @@ flowchart LR
 
 | Bước | Module | Mô tả |
 |---|---|---|
-| Tiền xử lý & Tokenizer | `src/neorag/pipelines/baseline.py:tokenize_vn`, `strip_accents` | Chuẩn hóa regex từ viết tắt, sinh unigram + bigram có dấu và không dấu |
-| Dense Embedding | `src/neorag/embeddings.py:bge-m3` | Embedding 118 đoạn văn bản được bổ sung metadata CLB và chủ đề |
-| Sparse BM25 | `src/neorag/pipelines/baseline.py:BM25Okapi` | Chỉ mục BM25 kép xử lý đồng thời văn bản gốc và văn bản bỏ dấu |
-| Fusion & Routing | `src/neorag/pipelines/baseline.py:run` | RRF kết hợp điểm số, nhân hệ số định tuyến theo CLB, round-robin cho câu hỏi so sánh |
-| Dynamic Context & LLM | `src/neorag/pipelines/baseline.py:generate_answer` | Co giãn ngữ cảnh linh hoạt, prompt trực diện loại bỏ rào đón |
+| Tiền xử lý và viết lại truy vấn | `src/neorag/pipelines/baseline.py` | Mở rộng từ viết tắt; gọi Haiku để viết lại câu hỏi khi phát hiện chữ không dấu, viết tắt hoặc câu hỏi nhiều CLB |
+| Dense embedding | `src/neorag/pipelines/baseline.py:GatewayEmbedder` | Gọi `bge-m3` qua gateway; nội dung lập chỉ mục kèm tên CLB và chủ đề |
+| BM25 | `src/neorag/pipelines/baseline.py:BM25Index` | Dùng unigram và bigram ở cả dạng có dấu lẫn bỏ dấu trong cùng một chỉ mục |
+| Gộp và xếp hạng | `src/neorag/pipelines/baseline.py:rank_single_query` | Gộp thứ hạng dense/BM25 bằng RRF; ưu tiên CLB được hỏi; xen kẽ kết quả khi có nhiều truy vấn con |
+| Ngữ cảnh và sinh câu trả lời | `src/neorag/pipelines/baseline.py:run` | Trả tối đa 10 ID; đưa tối đa 7 hoặc 10 đoạn vào prompt tùy loại câu hỏi |
 
 ---
 
 ## 3. Các quyết định kỹ thuật
 
-| Quyết định | Vì sao | Tác dụng đo được |
-|---|---|---|
-| **Dual-Index BM25 (có dấu & bỏ dấu)** | Nhiều câu hỏi sinh viên gõ không dấu (`clb lap trinh`, `khmt`, `train-0109`). Nếu chỉ dùng BM25 thông thường sẽ trượt hoàn toàn từ khóa. | Tăng Hit@5 từ 97.5% lên **99.2%** trên tập train; giải quyết triệt để các câu không dấu. |
-| **Mở rộng từ viết tắt & Teencode** | Câu hỏi thường dùng thuật ngữ nội bộ: `dpt` (đa phương tiện), `ttv` (thực tập sinh/thành viên), `sv`, `hv`, `bcn`, `bên vẽ`... | Tăng độ phủ từ khóa chính xác cho cả BM25 và Dense. |
-| **Soft Club Routing** | Tài liệu phân rõ 3 CLB (ProPTIT, MPC, GCC). Khi hỏi đích danh 1 CLB, các đoạn văn của CLB khác dễ gây nhiễu ngữ cảnh. | Tăng NDCG@5 lên **85.28%**; tài liệu đúng CLB luôn được đẩy lên top đầu. |
-| **Dynamic Context Window** | Cố định 3-4 đoạn sẽ thiếu thông tin khi so sánh liên CLB; cố định 10 đoạn sẽ làm loãng câu hỏi đơn CLB. | Giữ đủ 10 `retrieved_ids` cho bộ chấm, chỉ gửi Top 7 vào LLM cho câu đơn CLB $\rightarrow$ giảm nhiễu ngữ cảnh. |
-| **Prompt súc tích & Trực diện** | Đáp án chuẩn ngắn gọn, trực diện (~150-250 ký tự). Trả lời dài dòng làm tụt ROUGE-L và tăng Noise Sensitivity. | ROUGE-L tăng từ 52.9% lên **59.74%** trên Public Test; Groundedness đạt **99.15%**. |
-| **Xử lý câu hỏi thiếu dữ kiện (Partial Data)** | Câu hỏi có phần đúng nhưng thiếu thuộc tính con (ví dụ hỏi lịch tuyển sinh 2027) cần trả lời rõ phần đã có thay vì từ chối sạch. | Giữ vững điểm String Presence, không bị phạt 0 điểm mà vẫn đạt **100% Abstention** ở câu hoàn toàn lạc đề. |
-| **Giữ nguyên độ dài đoạn văn (No Chunking)** | 118 đoạn trong `corpus.jsonl` có độ dài trung bình ~380 ký tự, mỗi đoạn đã là một đơn vị tri thức hoàn chỉnh. | Không làm vỡ ngữ cảnh tự nhiên; giữ đúng định danh `id` gốc theo yêu cầu bộ chấm. |
+Các mục dưới đây mô tả **thiết kế đang có trong mã nguồn**, không phải kết quả thử nghiệm tách riêng từng thành phần (ablation).
 
-### Các phương án đã thử nghiệm nhưng không sử dụng:
+| Quyết định | Lý do và cách triển khai |
+|---|---|
+| **BM25 có dấu và bỏ dấu** | `BM25Index` lập token unigram/bigram từ văn bản gốc và văn bản bỏ dấu trong cùng một chỉ mục, giúp truy vấn không dấu có thêm cơ hội khớp từ khóa. |
+| **Mở rộng từ viết tắt** | `expand_abbreviations` thay một số cách gọi CLB và từ viết tắt thường gặp trước khi tìm kiếm. Với câu hỏi cần chuẩn hóa, pipeline có thể gọi Haiku viết lại truy vấn. |
+| **Ưu tiên CLB được hỏi** | Sau khi gộp thứ hạng BM25 và dense bằng RRF, `rank_single_query` nhân hệ số cho tài liệu thuộc CLB được nhận diện; truy vấn nhiều CLB được xen kẽ kết quả. |
+| **Ngữ cảnh thay đổi theo câu hỏi** | Pipeline trả tối đa 10 ID; mặc định đưa tối đa 7 đoạn vào prompt cho câu hỏi một CLB, tối đa 10 đoạn cho câu hỏi nhiều CLB. Đây là giới hạn theo nhánh mã, không phải số đoạn cố định cho mọi câu. |
+| **Trả lời theo tài liệu** | Prompt yêu cầu câu trả lời ngắn, không tự suy diễn và nói rõ khi thiếu dữ kiện hoặc câu hỏi ngoài tài liệu. |
+| **Giữ ID đoạn gốc** | Pipeline lập chỉ mục theo các đoạn trong corpus và trả về `id` của đoạn gốc để phù hợp định dạng bài nộp. |
 
-| Thử nghiệm | Kết quả | Lý do loại bỏ |
-|---|---|---|
-| Rerank bằng Cross-Encoder cục bộ nặng | Tăng thời gian chạy đáng kể (~25s/câu) | Vượt quá ngân sách thời gian mà điểm Recall@5 trên tập dev không chênh lệch nhiều so với RRF tối ưu. |
-| Prompt dài kèm nhiều ví dụ Few-shot | Tiêu tốn nhiều token input, làm câu trả lời sinh ra có xu hướng lặp từ | Làm tăng độ trễ và giảm tính tự nhiên của câu trả lời. |
-| Cắt cứng ngữ cảnh xuống Top 4 | ROUGE-L tăng nhẹ ở câu đơn giản | Bị mất dữ kiện nghiêm trọng ở các câu hỏi so sánh giữa 2 hoặc 3 CLB. |
+Chưa có báo cáo đối chứng đủ để quy một mức tăng điểm cụ thể cho từng quyết định trên; vì vậy README không đưa bảng các phiên bản hoặc các thử nghiệm loại bỏ.
 
 ---
 
@@ -159,7 +143,7 @@ neorag run train
 # Sinh file bài nộp cho Public Test (xuất file outputs/public_test_submission.zip)
 neorag run public_test
 
-# Sinh file bài nộp chính thức cho Private Test (xuất file outputs/private_test_submission.zip)
+# Sinh file bài nộp cho Private Test (xuất file outputs/private_test_submission.zip)
 neorag run private_test
 
 # Chạy bộ test kiểm thử chất lượng mã nguồn offline (không tốn API key)
@@ -168,7 +152,7 @@ pytest
 
 ### Cơ chế Cache và Tái tạo kết quả:
 - Mọi lời gọi API qua gateway đều được lưu trong SQLite cache cục bộ (`.cache/pipeline.sqlite`). Khi chạy lại với cùng dữ liệu đầu vào, hệ thống trích xuất từ cache với chi phí **$0** và thời gian phản hồi gần như tức thì.
-- Pipeline chính thức được định nghĩa tại `src/neorag/pipelines/baseline.py` và kế thừa lớp chuẩn `RAGPipeline`.
+- Pipeline mặc định được định nghĩa tại `src/neorag/pipelines/baseline.py` và kế thừa lớp `RAGPipeline`.
 
 ---
 
@@ -181,10 +165,9 @@ python -m streamlit run app/chat.py
 ```
 
 ### Tính năng chính của giao diện:
-- **Hỏi đáp thông minh**: Trả lời chính xác về các mốc thời gian, cơ cấu ban ngành, sự kiện và quy chế của ProPTIT, MPC, GCC.
-- **Trích dẫn nguồn minh bạch**: Hiển thị danh sách các tài liệu trích dẫn (`retrieved_ids`) kèm thẻ CLB và chủ đề tương ứng.
-- **Đo lường độ trễ**: Hiển thị thời gian thực thi (latency) cho từng câu hỏi theo thời gian thực.
-- **Từ chối an toàn**: Chủ động thông báo lịch sự khi câu hỏi nằm ngoài phạm vi tài liệu đã được cung cấp.
+- Nhận câu hỏi về ProPTIT, MPC, GCC và hiển thị câu trả lời từ pipeline.
+- Trong mục «Nguồn tham khảo», hiển thị các đoạn đã truy xuất cùng tên CLB, chủ đề, văn bản và thời gian phản hồi.
+- Prompt của pipeline yêu cầu từ chối khi không tìm thấy thông tin liên quan; đây là hành vi được định hướng, không phải bảo đảm đúng cho mọi câu hỏi.
 
 ---
 
@@ -207,7 +190,7 @@ NeoRAG-Cup-2026-Sub/
 ├── src/neorag/
 │   ├── pipelines/
 │   │   ├── base.py                 # Interface RAGPipeline cơ sở
-│   │   └── baseline.py             # Pipeline tối ưu hóa chính thức của đội thi
+│   │   └── baseline.py             # Pipeline được chọn làm mặc định
 │   ├── embeddings.py               # Module quản lý embedding BGE-M3
 │   ├── llm.py                      # Client kết nối Gateway Claude Haiku có retry/cache
 │   ├── predict.py & evaluate.py    # Bộ máy dự đoán và đánh giá
@@ -219,9 +202,6 @@ NeoRAG-Cup-2026-Sub/
 
 ## 8. Hạn chế
 
-1. **Giới hạn của chỉ số Response Relevancy:**
-   - Metric này đo độ tương đồng cosine giữa câu hỏi gốc và câu hỏi do LLM Judge sinh ngược từ câu trả lời. Đối với câu hỏi người dùng gõ không dấu, câu do Judge sinh ngược thường có dấu đầy đủ, dẫn đến điểm cosine bị lệch xuống mức ~59-60 dù câu trả lời hoàn toàn chính xác về mặt ngữ nghĩa.
-2. **Tính ngẫu nhiên của mô hình ngôn ngữ:**
-   - Do quy định cuộc thi không cho phép truyền tham số `temperature` (sử dụng giá trị mặc định của `claude-haiku-5-5`), kết quả sinh giữa các lượt chạy không cache có thể có sự dao động nhỏ về mặt diễn đạt. SQLite cache được sử dụng để đóng băng kết quả đã được thẩm định.
-3. **Phụ thuộc vào chất lượng Gateway:**
-   - Hệ thống phụ thuộc vào độ ổn định của mạng và gateway BTC (giới hạn 100 req/phút). Pipeline đã tích hợp cơ chế exponential backoff retry để tự phục hồi khi gặp sự cố mạng hoặc mã lỗi 429.
+1. **Đánh giá chưa tách riêng từng kỹ thuật.** Điểm Public và Private phản ánh bài nộp trên hai bộ câu hỏi khác nhau; chưa có ablation để xác định BM25, viết lại truy vấn hoặc chọn ngữ cảnh đóng góp bao nhiêu điểm.
+2. **LLM không tất định.** Theo [tài liệu đánh giá](docs/evaluation.md), mô hình không cho đặt `temperature` và điểm judge có thể dao động khi chấm độc lập. Cache SQLite giúp dùng lại kết quả cho lời gọi giống nhau, nhưng không chứng minh mọi lần chạy không cache đều giống nhau.
+3. **Phụ thuộc gateway.** Truy vấn mới cần gọi gateway để lấy embedding và sinh câu trả lời; mạng hoặc giới hạn tốc độ có thể ảnh hưởng thời gian phản hồi. Client có cơ chế thử lại khi gặp lỗi tạm thời.
